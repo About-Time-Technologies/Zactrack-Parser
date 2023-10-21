@@ -47,20 +47,7 @@ logger.info("Entering program")
 
 zabbixServer = ZabbixSender(zabbix_server=zabbix_ip, timeout=1)
 
-
 sio = socketio.Client()
-
-sio.connect("ws://192.168.3.24:8082/socket.io/")
-
-sio.emit("zactrack-room-control-join", ("room-system-states", False))
-sio.emit("zactrack-room-control-join", ("room-version-license-information", None))
-sio.emit("zactrack-room-control-join", ("room-client-live-info", None))
-sio.emit("zactrack-room-control-join", ("room-active-show-history-entry", None))
-sio.emit("zactrack-room-control-join", ("room-anchor-live-infos", None))
-sio.emit("zactrack-room-control-join", ("room-all-anchor-tracking-infos", None))
-sio.emit("zactrack-room-control-join", ("room-actor-live-infos", None))
-sio.emit("zactrack-room-control-join", ("room-all-sensor-tracking-information", False))
-sio.emit("zactrack-room-control-join", ("room-fixture-live-runtime-values", None))
 
 @sio.on("actor-live-infos")
 def on_actor_message(data):
@@ -77,6 +64,23 @@ def on_actor_message(data):
             zabbixServer.send(zabbix_packet)
         except:
             logger.warning("Failed to send to zabbix server")
+    
+    sio.disconnect()
 
 while True:
-    continue
+    if sio.connected:
+        sleep(5)
+        continue
+    sio.connect("ws://192.168.3.24:8082/socket.io/")
+
+    sio.emit("zactrack-room-control-join", ("room-system-states", False))
+    sio.emit("zactrack-room-control-join", ("room-version-license-information", None))
+    sio.emit("zactrack-room-control-join", ("room-client-live-info", None))
+    sio.emit("zactrack-room-control-join", ("room-active-show-history-entry", None))
+    sio.emit("zactrack-room-control-join", ("room-anchor-live-infos", None))
+    sio.emit("zactrack-room-control-join", ("room-all-anchor-tracking-infos", None))
+    sio.emit("zactrack-room-control-join", ("room-actor-live-infos", None))
+    sio.emit("zactrack-room-control-join", ("room-all-sensor-tracking-information", False))
+    sio.emit("zactrack-room-control-join", ("room-fixture-live-runtime-values", None))
+
+    sleep(30)
