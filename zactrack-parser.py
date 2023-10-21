@@ -54,7 +54,7 @@ def on_actor_message(data):
     zabbix_packet = []
 
     for actor in data:
-        if actor['state'] == 2:
+        if actor['state'] == 2 and actor['battery'] > -1:
             item = "Battery.Percentage." + str(actor['id'])
             zabbix_packet.append(ZabbixMetric("Zactrack", item, actor['battery']))
         logger.info(str(actor['id']) + ": " + str(actor['state']) + "   " + str(actor['battery']))
@@ -71,16 +71,23 @@ while True:
     if sio.connected:
         sleep(5)
         continue
-    sio.connect("ws://192.168.3.24:8082/socket.io/")
 
-    sio.emit("zactrack-room-control-join", ("room-system-states", False))
-    sio.emit("zactrack-room-control-join", ("room-version-license-information", None))
-    sio.emit("zactrack-room-control-join", ("room-client-live-info", None))
-    sio.emit("zactrack-room-control-join", ("room-active-show-history-entry", None))
-    sio.emit("zactrack-room-control-join", ("room-anchor-live-infos", None))
-    sio.emit("zactrack-room-control-join", ("room-all-anchor-tracking-infos", None))
-    sio.emit("zactrack-room-control-join", ("room-actor-live-infos", None))
-    sio.emit("zactrack-room-control-join", ("room-all-sensor-tracking-information", False))
-    sio.emit("zactrack-room-control-join", ("room-fixture-live-runtime-values", None))
+    logger.info("Starting new run")
+    
+    try:
+        sio.connect("ws://192.168.3.24:8082/socket.io/")
 
-    sleep(30)
+        sio.emit("zactrack-room-control-join", ("room-system-states", False))
+        sio.emit("zactrack-room-control-join", ("room-version-license-information", None))
+        sio.emit("zactrack-room-control-join", ("room-client-live-info", None))
+        sio.emit("zactrack-room-control-join", ("room-active-show-history-entry", None))
+        sio.emit("zactrack-room-control-join", ("room-anchor-live-infos", None))
+        sio.emit("zactrack-room-control-join", ("room-all-anchor-tracking-infos", None))
+        sio.emit("zactrack-room-control-join", ("room-actor-live-infos", None))
+        sio.emit("zactrack-room-control-join", ("room-all-sensor-tracking-information", False))
+        sio.emit("zactrack-room-control-join", ("room-fixture-live-runtime-values", None))
+
+        sleep(30)
+
+    except:
+        logger.warn("Unable to connect to zactrack")
