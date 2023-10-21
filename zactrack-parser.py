@@ -73,8 +73,10 @@ def on_actor_message(data):
         logger.info(str(actor['id']) + ": " + str(actor['state']) + "   " + str(actor['battery']))
 
     if len(zabbix_packet) > 0:
-        zabbixServer.send(zabbix_packet)
-        
+        try:
+            zabbixServer.send(zabbix_packet)
+        except:
+            logger.warning("Failed to send to zabbix server")
 
 while True:
     continue
