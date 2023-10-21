@@ -3,7 +3,8 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
-#from pyzabbix import ZabbixMetric, ZabbixSender
+import pyzabbix
+from pyzabbix import ZabbixMetric, ZabbixSender
 
 import configparser
 
@@ -14,7 +15,9 @@ import os
 
 import socketio
 
-logger = logging.getLogger('claypaky-parse')
+from Actor import Actor
+
+logger = logging.getLogger('zactrack-parse')
 configPath = filename=os.path.join(sys.path[0], "config.ini")
 
 
@@ -42,7 +45,7 @@ logger.info("Entering program")
 
 # Logging initialised
 
-#zabbixServer = ZabbixSender(zabbix_server=zabbix_ip, timeout=1)
+zabbixServer = ZabbixSender(zabbix_server=zabbix_ip, timeout=1)
 
 
 sio = socketio.Client()
@@ -61,8 +64,17 @@ sio.emit("zactrack-room-control-join", ("room-fixture-live-runtime-values", None
 
 @sio.on("actor-live-infos")
 def on_actor_message(data):
-    logger.info(data)
+    zabbix_packet = []
+
+    for actor in data:
+        if actor['state'] == 2:
+            item = "Battery.Percentage." + str(actor['id'])
+            zabbix_packet.append(ZabbixMetric("Zactrack", item, actor['battery']))
+        logger.info(str(actor['id']) + ": " + str(actor['state']) + "   " + str(actor['battery']))
+
+    if len(zabbix_packet) > 0:
+        zabbixServer.send(zabbix_packet)
+        
 
 while True:
     continue
-    #logger.info(sio.receive())
